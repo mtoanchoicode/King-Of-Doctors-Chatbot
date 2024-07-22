@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App Test</title>
+    <style>
+        .chatBox {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+        }
+        .messageInputDiv {
+            margin-top: 10px;
+        }
+        .user-message {
+            background-color: #d4edda;
+            padding: 10px;
+            margin: 5px;
+        }
+        .bot-message {
+            background-color: #f8d7da;
+            padding: 10px;
+            margin: 5px;
+        }
+        .rounded {
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vua Code Bot</h1>
+        <div class="chatBox"></div>
+        <div class="messageInputDiv">
+            <textarea class="form-control" rows="3" placeholder="Type your message here" id="messageInput"></textarea>
+        </div>
+        <button type="button" class="buttonClass" id="sendButton">Send</button>
+    </div>
+
+    <script>
+        const chatBox = document.querySelector(".chatBox");
+        const messageInput = document.querySelector("#messageInput");
+        const sendBtn = document.querySelector("#sendButton");
+
+        function addMessage(message, isUserMessage) {
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("rounded");
+
+            if (isUserMessage) {
+                messageDiv.classList.add("user-message");
+            } else {
+                messageDiv.classList.add("bot-message");
+            }
+
+            // Replace newline characters with <br> for proper formatting
+            const formattedMessage = message.replace(/\n/g, "<br>");
+            messageDiv.innerHTML = `<p>${formattedMessage}</p>`;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message !== "") {
+                addMessage(message, true);
+
+                fetch("/api", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ message })
+                })
+                .then(response => response.text())
+                .then(data => {
+                    messageInput.value = "";
+                    addMessage(data, false);
+                })
+                .catch(error => console.error(error));
+            }
+        }
+
+        sendBtn.addEventListener("click", sendMessage);
+        messageInput.addEventListener("keydown", event => {
+            if (event.keyCode === 13 && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
